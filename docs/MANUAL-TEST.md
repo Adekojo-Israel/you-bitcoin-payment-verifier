@@ -1,0 +1,21 @@
+# Ten-step manual testing guide
+
+Use `npm ci && npm start` or serve `site/index.html` over HTTPS/localhost. Use **only test coins**. The public examples below are reference transactions, not your own payment. **Do not send to the supplied fixture addresses.**
+
+1. **Open and navigate.** At a narrow phone width, open Verify, Receive, Send check, Checklist, Demo and the avatar’s settings. Repeat at desktop width. Confirm text wraps, the active view is labelled and keyboard focus is visible.
+2. **Demo offline.** With the page already loaded, go offline. In Demo, run short amount, right amount/unconfirmed, right amount/confirmed, and different address. Expect the corresponding verdict for each, a DEMO label, and no explorer link. Go online again.
+3. **Check a public Signet payment.** Verify → Signet → Load real Signet example → Check. The receiving address should match **0.00009963 BTC**; confirmations should be positive. Confirm that fee, fee rate, replacement signalling and the public-example label appear.
+4. **Check mismatches and errors.** Change the expected amount to `0.00010000` for an amount mismatch. Restore the example; change only the receiving address to the first fixture below for an address mismatch. Try an invalid ID, then append one hex digit to the valid ID and confirm it stays 65 digits and is rejected. Try `10000000.000000019` BTC (reject, do not shorten). Use 64 `f` characters for not found. Block the selected explorer in DevTools for an unavailable response; never expect a pass.
+5. **Check address-only lookup and the other chain.** Restore the Signet example and clear the ID. The result can show address history, not an order pass. Switch to Testnet 4; the old result clears. Load and check its sample (expected **0.01000000 BTC**). Try a Mainnet address to confirm rejection.
+6. **Receive without signing.** In Receive, paste the public Signet example address while Signet is selected. Load incoming history and look for BTC amounts and confirmed/unconfirmed labels. Confirm the advanced sweep is hidden. Leave amount blank, add `Flyer & layout`, generate the request, and check that the QR and encoded label appear.
+7. **Receive with a test wallet.** Create a temporary Signet wallet, copy its address, create a `0.00002500` BTC request and use it in Verify. Confirm that Verify pre-fills the address/amount, not a transaction ID. Don’t reload the generated wallet once funded.
+8. **Recipient comparison and checklist.** Save fixture A as a recipient. Compare A, B, and a different valid address to get exact, similar and no match. Reload and check persistence, then remove the saved item. In Checklist, mark two steps and verify `2 of 8`; reset and verify `0 of 8`.
+9. **Settings.** Save a display name, dark theme and Testnet 4. Reload and check initials, theme and network persistence. Test light mode and system mode. Switch back to Signet before testing the sweep.
+10. **Optional funded Signet test.** With a Signet-compatible wallet, request faucet test coins at `https://signetfaucet.com/` if available (public address only; never supply keys). Fund a new temporary YOU Signet wallet from the external Signet wallet, paste its actual transaction ID, and check before and after confirmation. Compare the fee and confirmation count with the public explorer. Open the advanced sweep, enter an external **Signet** destination and check that entering `100` sat/vB is rejected, not silently changed. Restore an allowed rate and review the amount/fee. **Broadcast publicly only if separately approved.** If approved, broadcast once and verify the resulting ID independently. If the faucet is unavailable, use the isolated [regtest integration](TEST-REPORT.md#isolated-bitcoin-core-integration) instead. Never use real funds.
+
+**Public Signet example:** [`811ec5114573b185f3db8e2f971472b52d8c570f7971edc0a8b78b1e140dcb40`](https://mempool.space/signet/tx/811ec5114573b185f3db8e2f971472b52d8c570f7971edc0a8b78b1e140dcb40), receiving address `tb1qxc9rhgpdjcp42nmhg6lepe7pp5g86tx25vlv8h`.
+
+**Recipient fixtures** — valid test-network encodings used for comparison only, not wallets YOU controls:
+
+- A: `tb1qf4x56n2df4x56n2df4x56n2df4x56ngqrwsv98`
+- B: `tb1qf4x56n2df4x56n2df4x56n2df4x56ngp7cyec4`

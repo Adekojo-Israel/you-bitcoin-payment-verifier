@@ -1,0 +1,29 @@
+{
+  "name": "you-dakar",
+  "version": "1.0.0",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "node --test",
+    "build": "node build.mjs",
+    "start": "node build.mjs && node serve.mjs",
+    "check": "node scripts/check-structure.mjs",
+    "test:browser": "node scripts/browser.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "description": "Test-network Bitcoin checkout and payment verification for small sellers",
+  "dependencies": {
+    "@noble/curves": "1.9.7",
+    "bitcoinjs-lib": "7.0.5",
+    "qrcode": "1.5.4"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12",
+    "playwright": "1.65.1"
+  },
+  "type": "module"
+}

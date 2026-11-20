@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#421629">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-__JS_HASH__'; style-src 'unsafe-inline'; img-src data:; connect-src https://mempool.space/signet/api/ https://mempool.space/testnet4/api/; base-uri 'none'; form-action 'none'; object-src 'none'">
+<title>YOU - Verify a Bitcoin payment</title>
+<style>/*INLINE_CSS*/</style>
+<script>/*INLINE_JS*/</script>
+</head>
+<body>
+<header class="top"><div class="wrap topinner"><a href="./" id="brand" class="brand" aria-label="YOU checkout"><b>Y<span>O</span>U<span class="dot">.</span></b><small>BITCOIN CHECKOUT</small></a><div class="header-actions"><span class="network"><span id="network-badge">SIGNET</span><span class="network-extra">· TEST COINS ONLY</span></span><div class="profile-control"><button id="settings-open" class="settings-toggle" type="button" aria-label="Open settings and profile" aria-describedby="settings-tip" aria-controls="settings-panel" aria-expanded="false"><span id="settings-initials" aria-hidden="true">Y</span><img id="settings-photo" class="settings-photo" width="28" height="28" alt="" hidden><span>Settings</span><svg class="settings-icon" aria-hidden="true" focusable="false" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"><path d="M2.5 5h11M2.5 11h11"/><path d="M6 3v4m4 2v4"/></svg></button><span class="settings-tooltip" id="settings-tip" role="tooltip">Open settings</span></div></div></div></header>
+<main class="wrap">
+<section class="intro" aria-labelledby="main-title">
+<p class="kicker">Bitcoin checkout / Test networks</p>
+<h1 id="main-title">Verify a Bitcoin payment before you release anything.</h1>
+<p>A screenshot is not a confirmation. Check the payment before you send the files or hand over the goods.</p>
+</section>
+<nav class="modebar" aria-label="Main navigation">
+<button type="button" data-view="lookup" aria-current="page"><span class="navnum" aria-hidden="true">01</span> Verify</button>
+<button type="button" data-view="wallet"><span class="navnum" aria-hidden="true">02</span> Receive</button>
+<button type="button" data-view="recipient"><span class="navnum" aria-hidden="true">03</span> Send check</button>
+<button type="button" data-view="checklist"><span class="navnum" aria-hidden="true">04</span> Checklist</button>
+<button type="button" data-view="practice"><span class="navnum" aria-hidden="true">05</span> Demo</button>
+</nav>
+<div class="layout">
+<div>
+<section class="card" id="practice" data-panel hidden><p class="kicker">05 / OFFLINE DEMO</p><h2>Try a fake payment alert</h2><p class="desc">You’re a freelance designer in Lagos. The client says they paid for a flyer. Check whether the payment matches the agreed 2,500 sats.</p>
+<div class="order"><div><b>Flyer design</b><small>Practice order / YOU-024</small></div><div class="order-value"><b>2,500</b> <small>sats due</small></div></div>
+<label for="scenario">Choose a practice scenario</label><select id="scenario"><option value="short">Screenshot says paid, but amount is short</option><option value="pending">Right amount, still waiting</option><option value="matched">Right amount, confirmed</option><option value="wrong">Payment went to another address</option></select>
+<button class="primary" type="button" id="practice-check">Check practice payment</button>
+<p class="note">DEMO / SIMULATED DATA / NO NETWORK NEEDED</p></section>
+<section class="card" id="wallet" data-panel hidden>
+<p class="kicker">02 / RECEIVE TEST BITCOIN</p><h2>Create a payment request</h2><p class="desc">Generate a temporary Signet wallet or paste an address from your own test wallet. Pasting an address does not give YOU access to its funds.</p>
+<div class="callout"><b>Test coins only.</b> A temporary wallet’s key stays in this tab’s memory. Closing or reloading loses access to any remaining test coins. No backup or recovery. Never paste a seed phrase or private key.</div>
+<button class="primary" type="button" id="wallet-create">Create temporary Signet wallet</button>
+<label for="receive-address">Receiving address</label><input id="receive-address" spellcheck="false" autocomplete="off" placeholder="Paste a test-network address">
+<button class="secondary" type="button" data-copy="receive-address">Copy address</button>
+<label for="wallet-sats">Amount in BTC (optional)</label><input id="wallet-sats" inputmode="decimal" placeholder="0.00002500">
+<label for="wallet-label">Payment label (optional)</label><input id="wallet-label" maxlength="60" autocomplete="off" placeholder="e.g. Flyer design - no personal details">
+<button class="primary" type="button" id="request-create">Generate payment request</button>
+<div id="invoice-body" hidden><h3>Share this request</h3><div class="invoice-row"><img id="request-qr" width="128" height="128" alt="Bitcoin payment request QR code" hidden><div><code id="request-uri"></code><button class="secondary" type="button" data-copy="request-uri">Copy request</button></div></div><p class="desc">Tell the payer which test network you’re using. The request itself does not distinguish Signet from Testnet 4.</p><button id="invoice-verify" class="secondary" type="button">Use this request in Verify</button></div>
+<p id="wallet-message" class="inline-status" role="status"></p>
+<div class="subsection"><h3>Incoming transactions</h3><p class="desc">Latest results from the selected explorer, not a complete statement.</p><button id="history-load" class="secondary" type="button">Load incoming transactions</button><p id="history-message" class="inline-status" role="status"></p><ul class="history" id="history-list"></ul></div>
+<details id="sweep" hidden><summary>Advanced: send the confirmed Signet balance</summary><p class="desc">For the wallet generated in this tab only. YOU signs locally during review; nothing is sent until you explicitly broadcast the signed transaction. This sends all confirmed outputs to one destination.</p><label for="destination">Destination Signet address</label><input id="destination" spellcheck="false" autocomplete="off" placeholder="tb1..."><label for="fee-rate">Fee rate (sat/vB)</label><input id="fee-rate" inputmode="numeric" value="2"><button class="secondary" type="button" id="sweep-prepare">Sign locally and review</button><div id="sweep-review" class="callout" hidden><code id="sweep-details"></code><button class="primary" type="button" id="sweep-send">Broadcast signed Signet test transaction</button></div><p id="sweep-message" class="inline-status" role="status"></p></details>
+</section>
+<section class="card" id="lookup" data-panel>
+<p class="kicker">01 / PAYMENT VERIFICATION</p><h2>Verify a payment</h2><p class="desc">Use the transaction ID from the buyer to check this order. An address-only search can show an old payment.</p>
+<div class="first-hint" id="first-hint" hidden>
+<p><strong>First check?</strong></p><ol><li>Paste your receiving address.</li><li>Enter the expected BTC amount.</li><li>Choose <strong>Check payment</strong>.</li></ol>
+<button type="button" class="secondary" id="hint-dismiss">Dismiss guide</button>
+</div>
+<label for="verify-network">Bitcoin test network</label><select id="verify-network"><option value="signet">Signet</option><option value="testnet4">Testnet 4</option></select>
+<button class="secondary" type="button" id="sample-load">Load real Signet example</button>
+<label for="lookup-address">Receiving address</label><input id="lookup-address" spellcheck="false" autocomplete="off" placeholder="Paste your public test-network address">
+<label for="lookup-sats">Expected amount (BTC)</label><input id="lookup-sats" inputmode="decimal" placeholder="0.00002500">
+<label for="lookup-txid">Transaction ID (optional)</label><input id="lookup-txid" spellcheck="false" autocomplete="off" placeholder="64 hexadecimal characters">
+<button class="primary" type="button" id="lookup-check">Check payment</button>
+<p class="desc fine">The public example is not a payment to you. For your own order, use an address you control and the transaction ID linked to that order.</p>
+</section>
+<section class="card" id="recipient" data-panel hidden>
+<p class="kicker">03 / LOCAL ADDRESS CHECK</p><h2>Check a recipient address</h2><p class="desc">Compare the full address with your saved list on the selected network. This view does not sign or send. An exact match does not prove ownership or trust.</p>
+<label for="recipient-input">Address you intend to pay</label><input id="recipient-input" autocomplete="off" spellcheck="false" placeholder="Paste a public test-network address">
+<button class="primary" id="recipient-check" type="button">Compare address</button><div id="recipient-feedback" class="inline-status" role="status"></div>
+<div class="subsection"><h3>Save an address you recognise</h3><label for="known-address">Public address</label><input id="known-address" autocomplete="off" spellcheck="false"><label for="known-label">Local label (optional)</label><input id="known-label" maxlength="40" autocomplete="off"><button class="secondary" id="known-save" type="button">Save on this device</button><div id="known-feedback" class="inline-status" role="status"></div><ul class="history" id="known-list"></ul></div>
+</section>
+<section class="card" id="checklist" data-panel hidden>
+<p class="kicker">04 / BEFORE YOU RELEASE</p><h2>Pre-release checklist</h2><p class="desc">Mark the steps you’ve done for this order. Progress is not a payment result or a recommendation to release anything.</p>
+<label for="check-progress">Checklist progress</label><progress id="check-progress" value="0" max="8"></progress><p id="check-count" class="inline-status" role="status"></p><div id="check-items"></div><button id="check-reset" class="secondary" type="button">Reset checklist</button>
+<div class="subsection"><h3>Warning signs</h3><p class="desc">Pause and check independently. These signs are not findings of fraud.</p>
+<ul class="warning-list"><li>Pressure to release goods or work before confirmation.</li><li>Screenshots instead of a transaction you can independently check.</li><li>A transaction ID that cannot be found on the selected network.</li><li>A different amount from what you agreed.</li><li>A receiving address that does not match yours.</li><li>A sender who insists an unconfirmed payment is final.</li><li>Demands for secrecy or unusual urgency.</li></ul></div></section>
+<section class="card" id="settings-panel" data-panel hidden>
+<p class="kicker">STORED ON THIS DEVICE</p><h2>Settings</h2>
+<section class="settings-block" aria-labelledby="getting-started-heading">
+  <div><h3 id="getting-started-heading">Getting started</h3><p class="desc">New to YOU? Take the guided tour to understand how YOU works and how to verify Bitcoin payments.</p></div>
+  <div><p class="desc">The tour points to the actual screens. You can skip it at any time.</p><button class="secondary" type="button" id="tour-start">Start guided tour</button></div>
+</section>
+<section class="settings-block" id="settings-profile" aria-labelledby="profile-heading">
+  <div><h3 id="profile-heading">Profile</h3><p class="desc">Manage your personal profile information.</p></div>
+  <div>
+    <div id="profile-view"><div class="profile-summary"><div class="profile-picture"><span id="profile-avatar" class="avatar" aria-hidden="true">Y</span><img id="profile-photo" class="profile-photo" width="56" height="56" alt="Profile picture" hidden></div><div><p class="fine profile-label">Display name</p><strong id="profile-display-name">Not set</strong></div></div>
+    <button class="secondary" type="button" id="profile-edit" aria-controls="profile-form" aria-expanded="false"><span aria-hidden="true">⋮</span> Edit Profile</button></div>
+    <form id="profile-form" hidden aria-label="Edit Profile">
+      <fieldset id="profile-fields" disabled><legend class="visually-hidden">Name and profile picture</legend>
+        <div class="profile-picture"><span id="draft-avatar" class="avatar" aria-hidden="true">Y</span><img id="draft-photo" class="profile-photo" width="56" height="56" alt="Profile picture preview" hidden></div>
+        <label for="profile-name">Display name</label><input id="profile-name" maxlength="40" autocomplete="nickname" placeholder="Optional">
+        <label for="profile-image">Profile picture</label><input id="profile-image" type="file" accept="image/png,image/jpeg,image/webp" aria-describedby="profile-image-help">
+        <p class="fine" id="profile-image-help">PNG, JPEG or WebP, up to 2 MB. The picture stays in this browser.</p>
+        <button class="secondary" id="profile-initials" type="button">Use initials instead</button>
+        <div class="action-row"><button class="primary compact-action" id="profile-save" type="submit">Save Profile</button><button class="secondary" id="profile-cancel" type="button">Cancel</button></div>
+      </fieldset>
+    </form>
+    <p id="profile-message" class="inline-status" role="status"></p>
+  </div>
+</section>
+<section class="settings-block" id="settings-appearance" aria-labelledby="appearance-heading">
+  <div><h3 id="appearance-heading">Appearance</h3><p class="desc">Choose how YOU appears on this device.</p></div>
+  <div><fieldset class="appearance-options" id="profile-theme" aria-labelledby="appearance-heading">
+    <label><input type="radio" name="appearance" value="light">Light Mode</label>
+    <label><input type="radio" name="appearance" value="dark">Dark Mode</label>
+    <label><input type="radio" name="appearance" value="system">System Mode</label>
+  </fieldset><p class="inline-status" id="appearance-message" role="status"></p></div>
+</section>
+<section class="settings-block" aria-labelledby="network-heading">
+  <div><h3 id="network-heading">Network preferences</h3><p class="desc">Manage the Bitcoin test network used by YOU.</p></div>
+  <div><label for="profile-network">Default test network</label><select id="profile-network"><option value="signet">Signet</option><option value="testnet4">Testnet 4</option></select>
+    <button class="primary compact-action" type="button" id="settings-save">Save network</button><p id="settings-message" class="inline-status" role="status"></p></div>
+</section>
+<section class="settings-block" aria-labelledby="privacy-heading">
+  <div><h3 id="privacy-heading">Privacy and security</h3></div><div>
+    <p class="desc">Your profile, preferences and saved addresses stay in this browser. Verification results are saved here only when you choose Save this check. Browser storage is not encrypted or synced.</p>
+    <p class="desc">The public explorer sees your connection details and requested addresses or transaction IDs. It receives a signed test transaction only if you choose to broadcast.</p>
+    <p class="desc">The temporary Signet wallet keeps its private key in this tab’s memory. Reloading or closing the tab loses access to any remaining test coins. YOU never sends or stores the key. Never enter a mainnet seed phrase: it controls real funds, and YOU does not need it or support Mainnet.</p>
+  </div>
+</section>
+<section class="settings-block" aria-labelledby="about-heading">
+  <div><h3 id="about-heading">About YOU</h3><p class="desc">Version 1.0.0</p></div><div>
+    <p class="desc">YOU helps Nigerian freelancers and small sellers check Bitcoin payments on test networks. It cannot detect fraud, confirm a bank payment or recover a production wallet. Demand has not been validated.</p>
+    <button class="secondary" type="button" id="tour-replay">Replay guided tour</button>
+    <p class="fine">The feedback form is not published yet. Do not share wallet credentials or private payment details.</p>
+  </div>
+</section>
+</section>
+
+</div>
+<aside class="card result" id="result" aria-labelledby="result-title" data-state="idle">
+<p class="kicker" id="result-source">PAYMENT DECISION</p><h2 id="result-title" tabindex="-1">Not checked yet</h2><p class="desc" id="result-detail" role="status">Run a check to compare the receiving address, the amount due and the confirmation status.</p>
+<dl class="checks"><div><dt>Transaction</dt><dd id="check-exists">Not checked</dd></div><div><dt>Receiving address</dt><dd id="check-address">Not checked</dd></div><div><dt>Amount received</dt><dd id="check-amount">Not checked</dd></div><div><dt>Confirmations</dt><dd id="check-confirmations">Not checked</dd></div><div><dt>Fee</dt><dd id="check-fee">Not checked</dd></div><div><dt>Fee rate</dt><dd id="check-rate">Not checked</dd></div><div><dt>RBF signalling</dt><dd id="check-rbf">Not checked</dd></div></dl><p class="fine" id="checked-scope" hidden></p>
+<p class="fine" id="result-time"></p><a id="result-link" hidden target="_blank" rel="noopener noreferrer">View on selected explorer</a>
+<div class="action-row" id="result-actions" hidden><button class="secondary" type="button" id="save-check">Save this check</button><button class="secondary" type="button" id="copy-result">Copy result summary</button></div>
+<p class="inline-status" id="result-action-message" role="status"></p>
+<div class="safety"><b>What this cannot prove</b><p>A Bitcoin check does not prove a naira transfer cleared, who sent the payment, or whether a screenshot is authentic. Unconfirmed payments may be replaced even when explicit RBF signalling is not detected.</p></div>
+</aside>
+<section class="saved-section" id="saved-panel" aria-labelledby="saved-heading">
+<div class="saved-header"><h3 id="saved-heading" tabindex="-1">Saved checks</h3><button class="secondary" type="button" id="saved-clear">Clear all saved checks</button></div>
+<p class="fine">Saved only in this browser. Not synced. Clearing your browser data removes them.</p>
+<p class="inline-status" id="saved-checks-message" role="status"></p>
+<div id="saved-checks-list"></div>
+</section>
+</div>
+<details class="privacy"><summary>How YOU handles your data</summary><p>No accounts, analytics or stored spending keys. YOU saves a verification result locally only when you choose Save this check. The public mempool.space explorer sees your IP address, requested transaction IDs, wallet address on a balance lookup and any signed sweep you broadcast. If the explorer is unavailable, YOU does not give a payment decision. Not for real funds.</p></details>
+<footer><span><b>YOU.</b> Payment checks for small sellers.</span><span>SIGNET / TESTNET 4 / NO REAL FUNDS</span></footer>
+</main>
+<div id="tour-intro" class="tour-intro" hidden aria-hidden="true"><b>YOU<span>.</span></b></div>
+<div id="tour-layer" class="tour-layer" hidden>
+  <div id="tour-spotlight" class="tour-spotlight" aria-hidden="true" hidden></div>
+  <section id="tour-popover" class="tour-popover" role="region" aria-labelledby="tour-title" aria-describedby="tour-text">
+    <p id="tour-progress" class="kicker"></p>
+    <h2 id="tour-title" tabindex="-1"></h2>
+    <p id="tour-text" class="desc"></p>
+    <div class="tour-actions">
+      <button id="tour-back" class="secondary" type="button">Back</button>
+      <button id="tour-next" class="primary" type="button">Start tour</button>
+      <button id="tour-skip" class="secondary" type="button">Skip tour</button>
+    </div>
+  </section>
+</div>
+</body>
+</html>

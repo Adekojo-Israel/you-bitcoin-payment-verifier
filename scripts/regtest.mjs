@@ -1,0 +1,31 @@
+// Run against an isolated Bitcoin Core regtest datadir and wallet named judge.
+import {execFileSync} from 'node:child_process';
+import assert from 'node:assert/strict';
+import {networks} from 'bitcoinjs-lib';
+import {makeWallet, checkPayment, prepareSweep} from '../src/bitcoin.js';
+if(!process.env.CORE_DATA) throw Error('Set CORE_DATA to the isolated regtest datadir.');
+const call=(...args)=>execFileSync(process.env.CLI||'bitcoin-cli',['-regtest',`-datadir=${process.env.CORE_DATA}`,`-rpcport=${process.env.CORE_RPC_PORT||'28443'}`,'-rpcwallet=judge',...args],{encoding:'utf8'}).trim();
+const n=networks.regtest, wallet=makeWallet(n), other=makeWallet(n), miner=call('getnewaddress');
+const height=()=>Number(call('getblockcount'));
+const esTx=(txid, confirmed, height)=>{
+  const from=JSON.parse(call('getrawtransaction',txid,'true'));
+  return {txid:from.txid,vout:from.vout.map(v=>({value:Math.round(v.value*100_000_000),scriptpubkey:v.scriptPubKey.hex})),status:{confirmed,block_height:height}};
+};
+call('generatetoaddress','101',miner);
+const due={address:wallet.address,sats:2500,txid:call('-named','sendtoaddress',`address=${wallet.address}`,'amount=0.00002500','fee_rate=2')};
+const pending=esTx(due.txid,false,undefined);
+assert.equal(checkPayment(pending,due,height(),n).state,'pending');
+const [hash]=JSON.parse(call('generatetoaddress','1',miner));
+const confirmed=JSON.parse(call('getrawtransaction',due.txid,'true',hash));
+const esConfirmed={...pending,status:{confirmed:true,block_height:height()}};
+assert.equal(checkPayment(esConfirmed,due,height(),n).state,'matched');
+const utxos=confirmed.vout.filter(o=>o.scriptPubKey.address===wallet.address).map(o=>({txid:due.txid,vout:o.n,value:Math.round(o.value*100_000_000),status:{confirmed:true}}));
+const spend=prepareSweep(wallet,utxos,other.address,2);
+const [accept]=JSON.parse(call('testmempoolaccept',JSON.stringify([spend.raw])));
+assert.equal(accept.allowed,true,JSON.stringify(accept));
+assert.equal(call('sendrawtransaction',spend.raw),spend.id);
+const [sweepHash]=JSON.parse(call('generatetoaddress','1',miner));
+const swept=JSON.parse(call('getrawtransaction',spend.id,'true',sweepHash));
+assert.equal(swept.vout[0].scriptPubKey.address,other.address);
+assert.equal(Math.round(swept.vout[0].value*100_000_000),spend.amount);
+console.log('Bitcoin Core regtest: created wallet, received 2,500 sats, observed pending then confirmed, signed, broadcast and mined a sweep.');
